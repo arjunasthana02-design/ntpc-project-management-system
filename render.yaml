@@ -1,0 +1,38 @@
+services:
+  - type: web
+    name: ntpc-project-management-system
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 180
+    disk:
+      name: ntpc-uploads
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: SESSION_COOKIE_SECURE
+        value: "true"
+      - key: UPLOAD_FOLDER
+        value: /var/data/uploads
+      - key: MAX_UPLOAD_MB
+        value: "50"
+      - key: DB_HOST
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_NAME
+        sync: false
+      - key: DB_PORT
+        sync: false
+      - key: FLASK_SECRET_KEY
+        generateValue: true
+      - key: PRIME_ADMIN_USERNAME
+        sync: false
+      - key: PRIME_ADMIN_PASSWORD
+        sync: false
+      - key: PRIME_ADMIN_MOBILE
+        sync: false

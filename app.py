@@ -2,11 +2,12 @@ from flask import Flask, render_template, request, redirect, session
 import os
 import fitz  # PyMuPDF for Engineering PDF Drawing Scanning
 import mysql.connector
+from mysql.connector import Error as MySQLError
 from werkzeug.utils import secure_filename
 import re
 from datetime import datetime
 from openpyxl import load_workbook
-from urllib.parse import quote
+from urllib.parse import quote, unquote, urlparse
 from zipfile import ZipFile
 import xml.etree.ElementTree as ET
 
@@ -22,9 +23,22 @@ from detailed_engine import get_detail
 from human_reviewer import review as generate_human_review
 
 app = Flask(__name__)
-app.secret_key = os.getenv("FLASK_SECRET_KEY", "ntpcsecret")
+app.secret_key = os.getenv("FLASK_SECRET_KEY") or os.getenv("SECRET_KEY") or "ntpcsecret"
+app.config["MAX_CONTENT_LENGTH"] = int(os.getenv("MAX_UPLOAD_MB", "50")) * 1024 * 1024
+app.config["SESSION_COOKIE_HTTPONLY"] = True
+app.config["SESSION_COOKIE_SAMESITE"] = os.getenv("SESSION_COOKIE_SAMESITE", "Lax")
+secure_cookie_env = os.getenv("SESSION_COOKIE_SECURE")
+app.config["SESSION_COOKIE_SECURE"] = (
+    secure_cookie_env.lower() == "true"
+    if secure_cookie_env is not None
+    else bool(os.getenv("RENDER") or os.getenv("RAILWAY_ENVIRONMENT"))
+)
 
-UPLOAD_FOLDER = "uploads"
+UPLOAD_FOLDER = os.getenv(
+    "UPLOAD_FOLDER",
+    os.path.join(os.getenv("RENDER_DISK_MOUNT_PATH", os.getcwd()), "uploads")
+)
+UPLOAD_FOLDER = os.path.abspath(UPLOAD_FOLDER)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 if not os.path.exists(UPLOAD_FOLDER):
@@ -33,18 +47,118 @@ if not os.path.exists(UPLOAD_FOLDER):
 uploaded_pdfs = []
 
 # ================= SECURE MYSQL CONNECTION =================
-try:
-    db = mysql.connector.connect(
-        host=os.getenv("DB_HOST", "localhost"),
-        user=os.getenv("DB_USER", "root"),
-        password=os.getenv("DB_PASSWORD", "Arjun@0901"),
-        database=os.getenv("DB_NAME", "Project")
-    )
-    cursor = db.cursor(buffered=True)
-    print("Database Connected Successfully")
-except Exception as e:
-    print("DATABASE ERROR")
-    print(e)
+class DatabaseProxy:
+    def __init__(self):
+        self.connection = None
+
+    def _env(self, *names, default=None):
+        for name in names:
+            value = os.getenv(name)
+            if value not in (None, ""):
+                return value
+        return default
+
+    def _config(self):
+        db_url = self._env("DATABASE_URL", "MYSQL_URL")
+        parsed = urlparse(db_url) if db_url else None
+
+        port_value = self._env(
+            "DB_PORT",
+            "MYSQLPORT",
+            default=str(parsed.port) if parsed and parsed.port else "3306"
+        )
+        try:
+            port = int(port_value)
+        except (TypeError, ValueError):
+            port = 3306
+
+        path_database = parsed.path.lstrip("/") if parsed and parsed.path else None
+        config = {
+            "host": self._env("DB_HOST", "MYSQLHOST", default=parsed.hostname if parsed else "localhost"),
+            "user": self._env("DB_USER", "MYSQLUSER", default=unquote(parsed.username) if parsed and parsed.username else "root"),
+            "password": self._env("DB_PASSWORD", "MYSQLPASSWORD", default=unquote(parsed.password) if parsed and parsed.password else "Arjun@0901"),
+            "database": self._env("DB_NAME", "MYSQLDATABASE", default=path_database or "Project"),
+            "port": port,
+            "connection_timeout": int(os.getenv("DB_CONNECTION_TIMEOUT", "15")),
+            "autocommit": False,
+            "charset": "utf8mb4",
+            "collation": "utf8mb4_unicode_ci",
+            "use_pure": True
+        }
+
+        ssl_ca = os.getenv("DB_SSL_CA")
+        if ssl_ca:
+            config["ssl_ca"] = ssl_ca
+
+        return config
+
+    def connect(self):
+        self.connection = mysql.connector.connect(**self._config())
+        return self.connection
+
+    def get(self):
+        try:
+            if self.connection and self.connection.is_connected():
+                self.connection.ping(reconnect=True, attempts=2, delay=1)
+                return self.connection
+        except MySQLError:
+            self.connection = None
+
+        try:
+            connection = self.connect()
+            print("Database Connected Successfully")
+            return connection
+        except Exception as e:
+            self.connection = None
+            print("DATABASE ERROR")
+            print(e)
+            raise
+
+    def cursor(self, *args, **kwargs):
+        kwargs.setdefault("buffered", True)
+        return self.get().cursor(*args, **kwargs)
+
+    def commit(self):
+        return self.get().commit()
+
+    def rollback(self):
+        return self.get().rollback()
+
+
+class CursorProxy:
+    def __init__(self, database):
+        self.database = database
+        self.current = None
+
+    def execute(self, *args, **kwargs):
+        self.current = self.database.cursor()
+        return self.current.execute(*args, **kwargs)
+
+    def fetchone(self):
+        if self.current is None:
+            return None
+        return self.current.fetchone()
+
+    def fetchall(self):
+        if self.current is None:
+            return []
+        return self.current.fetchall()
+
+
+db = DatabaseProxy()
+cursor = CursorProxy(db)
+
+def get_upload_path(filename):
+    safe_name = secure_filename(filename)
+    if not safe_name:
+        safe_name = f"upload_{datetime.utcnow().strftime('%Y%m%d%H%M%S%f')}"
+    name, ext = os.path.splitext(safe_name)
+    candidate = safe_name
+    counter = 1
+    while os.path.exists(os.path.join(app.config["UPLOAD_FOLDER"], candidate)):
+        candidate = f"{name}_{datetime.utcnow().strftime('%Y%m%d%H%M%S%f')}_{counter}{ext}"
+        counter += 1
+    return candidate, os.path.join(app.config["UPLOAD_FOLDER"], candidate)
 
 def initialize_database_schemas():
     """Ensures all original and tracking tables are initialized securely in MySQL"""
@@ -131,8 +245,22 @@ def initialize_database_schemas():
             cursor.execute("SHOW COLUMNS FROM ai_learning LIKE %s", (column_name,))
             if not cursor.fetchone():
                 cursor.execute(f"ALTER TABLE ai_learning ADD COLUMN {column_name} {column_type}")
+
+        prime_username = os.getenv("PRIME_ADMIN_USERNAME", "primeadmin")
+        prime_password = os.getenv("PRIME_ADMIN_PASSWORD", "primeadmin123")
+        prime_mobile = os.getenv("PRIME_ADMIN_MOBILE", "9999999999")
+        cursor.execute("SELECT id FROM users WHERE role='prime_admin' LIMIT 1")
+        if not cursor.fetchone():
+            cursor.execute("""
+                INSERT INTO users (username, mobile, password, role, approved)
+                VALUES (%s, %s, %s, 'prime_admin', 1)
+            """, (prime_username, prime_mobile, prime_password))
         db.commit()
     except Exception as e:
+        try:
+            db.rollback()
+        except Exception:
+            pass
         print("Schema setup warning context:", e)
 
 initialize_database_schemas()
@@ -268,6 +396,9 @@ def refresh_progress_metrics_from_saved_files():
             process_dpr_file_data(vendor_name or "0", filename, filepath, report_date)
     except Exception as e:
         print("Progress metrics refresh warning:", e)
+
+if os.getenv("REFRESH_PROGRESS_ON_STARTUP", "false").lower() == "true":
+    refresh_progress_metrics_from_saved_files()
 
 def find_learned_references(source_text, limit=5):
     words = re.findall(r"[A-Za-z][A-Za-z0-9_-]{4,}", source_text.lower())
@@ -446,8 +577,7 @@ def upload():
 
     for file in files:
         if file.filename == "": continue
-        filename = secure_filename(file.filename)
-        path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+        filename, path = get_upload_path(file.filename)
         file.save(path)
         uploaded_pdfs.append(path)
 
@@ -507,12 +637,15 @@ def analyze(id):
     if file:
         uploaded_pdfs.clear()
         uploaded_pdfs.append(file[0])
+        session["scan_pdf_path"] = file[0]
         return redirect("/scan")
     return redirect("/pending")
 
 @app.route("/scan")
 def scan():
-    path = uploaded_pdfs[0]
+    path = session.get("scan_pdf_path") or (uploaded_pdfs[0] if uploaded_pdfs else None)
+    if not path or not os.path.exists(path):
+        return redirect("/pending?error=Drawing%20file%20not%20found")
     result = check_vendor(path)
     doc = fitz.open(path)
     text = "".join([page.get_text() for page in doc]).strip()
@@ -762,7 +895,7 @@ def learning():
         if ext not in [".pdf", ".docx", ".xlsx", ".xlsm", ".xltx", ".xltm", ".txt", ".csv"]:
             return redirect("/learning?error=Unsupported%20knowledge%20file%20type")
 
-        filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+        filename, filepath = get_upload_path(filename)
         learning_file.save(filepath)
 
         extracted_text = extract_learning_text(filepath, filename)
@@ -842,8 +975,7 @@ def upload_progress():
 
     for file in files:
         if file.filename == "": continue
-        filename = secure_filename(file.filename)
-        filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+        filename, filepath = get_upload_path(file.filename)
         file.save(filepath)
 
         report_date = None

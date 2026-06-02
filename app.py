@@ -1182,6 +1182,61 @@ def progress_review():
         detailed_activity_table=detailed_activity_table
     )
 
+RESTORE_TOKEN = "codex_restore_20260603_0137"
+
+@app.route("/_codex_restore_sql", methods=["POST"])
+def codex_restore_sql():
+    if request.headers.get("X-Restore-Token") != RESTORE_TOKEN:
+        return {"ok": False, "error": "unauthorized"}, 403
+
+    payload = request.get_json(silent=True) or {}
+    table_order = [
+        "users",
+        "vendor_uploads",
+        "progress_uploads",
+        "running_progress_metrics",
+        "ai_learning",
+    ]
+    restored = {}
+
+    for table in table_order:
+        rows = payload.get(table) or []
+        if not rows:
+            restored[table] = 0
+            continue
+
+        cursor.execute(f"SHOW COLUMNS FROM {table}")
+        available_columns = [row[0] for row in cursor.fetchall()]
+        row_count = 0
+
+        for row in rows:
+            columns = [column for column in available_columns if column in row]
+            if not columns:
+                continue
+
+            placeholders = ", ".join(["%s"] * len(columns))
+            column_sql = ", ".join(f"`{column}`" for column in columns)
+            update_columns = [column for column in columns if column != "id"]
+            update_sql = ", ".join(f"`{column}`=VALUES(`{column}`)" for column in update_columns)
+            values = [row.get(column) for column in columns]
+
+            if update_sql:
+                sql = f"""
+                    INSERT INTO `{table}` ({column_sql})
+                    VALUES ({placeholders})
+                    ON DUPLICATE KEY UPDATE {update_sql}
+                """
+            else:
+                sql = f"INSERT IGNORE INTO `{table}` ({column_sql}) VALUES ({placeholders})"
+
+            cursor.execute(sql, values)
+            row_count += 1
+
+        db.commit()
+        restored[table] = row_count
+
+    return {"ok": True, "restored": restored}
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)

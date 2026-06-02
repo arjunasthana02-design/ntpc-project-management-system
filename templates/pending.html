@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>NTPC Pending Review Center</title>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial;
+}
+
+body{
+background:#eef2f7;
+padding:30px;
+}
+
+.topbar{
+height:80px;
+background:#0b566f;
+border-radius:18px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:0 40px;
+color:white;
+margin-bottom:30px;
+box-shadow:0 5px 20px rgba(0,0,0,.15);
+}
+
+.logo{
+font-size:28px;
+font-weight:bold;
+}
+
+.user{
+font-size:18px;
+}
+
+.hero{
+background:linear-gradient(
+90deg,
+#0d4d6c,
+green
+);
+
+padding:45px;
+border-radius:30px;
+color:white;
+margin-bottom:30px;
+box-shadow:0 6px 20px rgba(0,0,0,.15);
+}
+
+.hero h1{
+font-size:42px;
+margin-bottom:10px;
+}
+
+.hero p{
+font-size:20px;
+opacity:.9;
+}
+
+.cards{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:25px;
+margin-bottom:35px;
+}
+
+.card{
+background:white;
+padding:35px;
+border-radius:22px;
+text-align:center;
+box-shadow:0 2px 14px rgba(0,0,0,.1);
+}
+
+.card h2{
+margin-bottom:15px;
+color:#0b566f;
+}
+
+.number{
+font-size:55px;
+font-weight:bold;
+color:#0b566f;
+}
+
+.box{
+background:white;
+padding:35px;
+border-radius:25px;
+box-shadow:0 2px 18px rgba(0,0,0,.12);
+}
+
+.heading{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:30px;
+}
+
+.heading h1{
+color:#0b566f;
+}
+
+.back{
+background:#0b566f;
+color:white;
+padding:12px 22px;
+text-decoration:none;
+border-radius:10px;
+font-weight:bold;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+overflow:hidden;
+border-radius:15px;
+}
+
+th{
+background:#0b566f;
+color:white;
+padding:18px;
+font-size:17px;
+}
+
+td{
+padding:18px;
+text-align:center;
+border-bottom:1px solid #ddd;
+}
+
+tr:hover{
+background:#f7fbff;
+}
+
+.vendor{
+font-weight:bold;
+color:#0b566f;
+}
+
+.pending{
+background:#fff5dd;
+color:#cc8a00;
+padding:8px 14px;
+border-radius:30px;
+font-weight:bold;
+}
+
+.actions{
+display:flex;
+justify-content:center;
+gap:8px;
+flex-wrap:wrap;
+}
+
+.btn{
+padding:10px 14px;
+border-radius:10px;
+text-decoration:none;
+color:white;
+font-weight:bold;
+display:inline-block;
+font-size:14px;
+transition:.3s;
+}
+
+.btn:hover{
+transform:translateY(-2px);
+}
+
+.ai{
+background:#0b566f;
+}
+
+.approve{
+background:green;
+}
+
+.reject{
+background:#d62828;
+}
+
+.delete{
+background:black;
+}
+
+.empty{
+padding:40px;
+text-align:center;
+color:gray;
+font-size:20px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+{% if request.args.get("success") %}
+<script>alert("{{ request.args.get('success') }}");</script>
+{% endif %}
+{% if request.args.get("error") %}
+<script>alert("{{ request.args.get('error') }}");</script>
+{% endif %}
+
+<div class="topbar">
+
+<div class="logo">
+NTPC Pending Review Center
+</div>
+
+<div class="user">
+{{session["role"].replace("_"," ").title()}}
+{{session["username"]}}
+</div>
+
+</div>
+
+
+<div class="hero">
+
+<h1>
+Pending Vendor Drawings
+</h1>
+
+<p>
+Human Intelligence + AI Assisted Review Queue
+</p>
+
+</div>
+
+
+
+<div class="cards">
+
+<div class="card">
+<h2>Total Pending</h2>
+<div class="number">
+{{files|length}}
+</div>
+</div>
+
+<div class="card">
+<h2>AI Status</h2>
+<div class="number">
+ON
+</div>
+</div>
+
+<div class="card">
+<h2>Review Mode</h2>
+<div class="number">
+LIVE
+</div>
+</div>
+
+</div>
+
+
+
+<div class="box">
+
+<div class="heading">
+
+<h1>
+Pending Drawing Queue
+</h1>
+
+<a href="/home" class="back">
+Dashboard
+</a>
+
+</div>
+
+
+
+{% if files|length>0 %}
+
+<table>
+
+<tr>
+<th>ID</th>
+<th>Uploaded By</th>
+<th>Drawing</th>
+<th>Accuracy</th>
+<th>Status</th>
+<th>Actions</th>
+</tr>
+
+{% for x in files %}
+
+<tr>
+
+<td>
+{{x[0]}}
+</td>
+
+<td class="vendor">
+{{x[1]}}
+</td>
+
+<td>
+{{x[3]}}
+</td>
+
+<td>
+{{x[6]}}%
+</td>
+
+<td>
+<span class="pending">
+Pending
+</span>
+</td>
+
+<td>
+
+<div class="actions">
+
+<a
+class="btn ai"
+href="/analyze/{{x[0]}}">
+AI Analysis
+</a>
+
+<a
+class="btn approve"
+href="/approve_vendor/{{x[0]}}">
+Approve
+</a>
+
+<a
+class="btn reject"
+href="/reject_vendor/{{x[0]}}">
+Reject
+</a>
+
+<a
+class="btn delete"
+href="/delete_vendor/{{x[0]}}?from=pending">
+Delete
+</a>
+
+</div>
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+{% else %}
+
+<div class="empty">
+No pending drawings available
+</div>
+
+{% endif %}
+
+</div>
+
+</body>
+</html>

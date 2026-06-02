@@ -1,0 +1,41 @@
+<html>
+
+<body>
+
+<h1>AI Requirement Training Complete</h1>
+
+<h2>Total Rules Learned: {{total}}</h2>
+
+<hr>
+
+<h2>Engineering</h2>
+
+{% for i in engineering %}
+<p>✔ {{i}}</p>
+{% endfor %}
+
+<hr>
+
+<h2>Layout</h2>
+
+{% for i in layout %}
+<p>✔ {{i}}</p>
+{% endfor %}
+
+<hr>
+
+<h2>Foundation</h2>
+
+{% for i in foundation %}
+<p>✔ {{i}}</p>
+{% endfor %}
+
+<br>
+
+<a href="/">
+Train Again
+</a>
+
+</body>
+
+</html>

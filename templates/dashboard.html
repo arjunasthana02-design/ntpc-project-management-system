@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>AI Assisted NTPC Review Dashboard</title>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
+
+body{
+font-family:Arial;
+background:#eef2f7;
+}
+
+.topbar{
+
+height:80px;
+background:#0f5a6b;
+color:white;
+display:flex;
+align-items:center;
+justify-content:space-between;
+padding:0 40px;
+box-shadow:0 2px 12px rgba(0,0,0,.2);
+
+}
+
+.logo{
+
+font-size:20px;
+font-weight:bold;
+
+}
+
+.container{
+
+display:flex;
+gap:25px;
+
+}
+
+.sidebar{
+
+width:280px;
+background:white;
+padding:25px;
+border-radius:25px;
+box-shadow:0 2px 18px rgba(0,0,0,.12);
+
+height:fit-content;
+
+}
+
+.menu{
+
+display:block;
+
+padding:18px;
+
+margin-bottom:10px;
+
+border-radius:12px;
+
+text-decoration:none;
+
+color:#333;
+
+font-size:18px;
+
+font-weight:bold;
+
+transition:.3s;
+
+}
+
+.menu:hover{
+
+background:#eef7ff;
+
+color:#0f5a6b;
+
+padding-left:28px;
+
+}
+
+.hero h1{
+
+font-size:52px;
+margin-bottom:15px;
+
+}
+
+.hero p{
+
+font-size:22px;
+
+}
+
+.summary{
+
+display:grid;
+grid-template-columns:
+repeat(5,1fr);
+
+gap:25px;
+margin-bottom:35px;
+
+}
+
+.card{
+
+background:white;
+padding:30px;
+border-radius:25px;
+text-align:center;
+box-shadow:0 2px 18px rgba(0,0,0,.12);
+
+}
+
+.card h2{
+
+font-size:20px;
+margin-bottom:15px;
+
+}
+
+.big{
+
+font-size:55px;
+font-weight:bold;
+color:#114b5f;
+
+}
+
+.main{
+
+display:grid;
+grid-template-columns:
+1fr 1fr;
+
+gap:30px;
+margin-bottom:30px;
+
+}
+
+.box{
+
+background:white;
+padding:30px;
+border-radius:25px;
+box-shadow:0 2px 18px rgba(0,0,0,.12);
+
+}
+
+.score{
+
+font-size:70px;
+font-weight:bold;
+color:#114b5f;
+
+}
+
+.small{
+
+line-height:2;
+color:gray;
+
+}
+
+.status{
+
+font-size:42px;
+font-weight:bold;
+color:#114b5f;
+
+}
+
+.btn{
+
+padding:15px;
+width:220px;
+border:none;
+margin-top:15px;
+border-radius:12px;
+font-size:16px;
+font-weight:bold;
+cursor:pointer;
+
+}
+
+.approve{
+
+background:#1db954;
+color:white;
+
+}
+
+.reject{
+
+background:#e63946;
+color:white;
+
+}
+
+.explain{
+
+background:#eef7ff;
+border-left:6px solid #0a58ca;
+
+}
+
+.section{
+
+background:white;
+padding:30px;
+border-radius:25px;
+margin-top:30px;
+box-shadow:0 2px 18px rgba(0,0,0,.12);
+
+}
+
+.sectiontitle{
+
+font-size:30px;
+margin-bottom:25px;
+
+}
+
+li{
+
+margin-bottom:20px;
+line-height:1.8;
+
+}
+
+.detailbtn{
+
+background:#0a58ca;
+padding:10px 18px;
+border-radius:10px;
+text-decoration:none;
+color:white;
+margin-left:10px;
+font-size:14px;
+
+}
+
+pre{
+
+white-space:pre-wrap;
+line-height:1.8;
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+
+<div class="topbar">
+
+<div class="logo">
+
+⚡ NTPC AI Drawing Intelligence Platform
+
+</div>
+
+<div>
+
+{{session["role"].replace("_"," ").title()}}
+{{session["username"]}}
+
+</div>
+
+</div>
+
+
+
+<div class="container">
+
+<div class="sidebar">
+
+<a href="/home" class="menu">
+Dashboard
+</a>
+
+<a href="/home#upload" class="menu">
+Vendor Uploads
+</a>
+
+<a href="/pending" class="menu">
+Pending Reviews
+</a>
+
+<a href="/approved" class="menu">
+Approved Drawings
+</a>
+
+<a href="/rejected" class="menu">
+Rejected Drawings
+</a>
+
+<a href="/prime_dashboard" class="menu">
+Admin Management
+</a>
+
+<a href="/progress_review" class="menu">
+Progress Review
+</a>
+
+<a href="/learning" class="menu">
+AI Learning Center
+</a>
+
+</div>
+
+
+<div style="flex:1;">
+
+
+<div class="hero">
+
+<h1>
+
+AI Assisted NTPC Drawing Intelligence Platform
+
+</h1>
+
+<p>
+
+Human Intelligence + AI Assisted Vendor Drawing Review Engine
+
+</p>
+
+</div>
+
+
+
+<div class="summary">
+
+<div class="card">
+
+<h2>Total Drawings</h2>
+
+<div class="big">
+
+{{total}}
+
+</div>
+
+</div>
+
+
+<div class="card">
+
+<h2>Approved</h2>
+
+<div class="big">
+
+{{found}}
+
+</div>
+
+</div>
+
+
+<div class="card">
+
+<h2>Compliance</h2>
+
+<div class="big">
+
+{{compliance}}%
+
+</div>
+
+</div>
+
+
+<div class="card">
+
+<h2>AI Confidence</h2>
+
+<div class="big">
+
+{{human_score}}%
+
+</div>
+
+</div>
+
+
+<div class="card">
+
+<h2>Status</h2>
+
+<div class="big">
+
+ON
+
+</div>
+
+</div>
+
+</div>
+
+
+
+
+<div class="main">
+
+
+<div class="box">
+
+<h2>
+
+Overall Vendor Drawing Accuracy
+
+</h2>
+
+<br>
+
+<div class="score">
+
+{{vendor_accuracy}}%
+
+</div>
+
+<div class="small">
+
+Rules Found:
+{{found}}
+
+<br>
+
+Rules Checked:
+{{total}}
+
+<br>
+
+Section VI Compliance:
+{{compliance}}%
+
+<br>
+
+Approved Drawing Similarity:
+{{historical_score}}%
+
+<br>
+
+Human Review Confidence:
+{{human_score}}%
+
+</div>
+
+
+<form action="/approve" method="post">
+
+<button class="btn approve">
+
+Approve Drawing
+
+</button>
+
+</form>
+
+
+<form action="/reject" method="post">
+
+<button class="btn reject">
+
+Reject Drawing
+
+</button>
+
+</form>
+
+</div>
+
+
+
+<div class="box">
+
+<h2>
+
+Status
+
+</h2>
+
+<br><br>
+
+<div class="status">
+
+ {{status}}
+
+</div>
+
+</div>
+
+</div>
+
+
+
+
+<div class="box explain">
+
+<h2>
+
+Why Accuracy Can Be High Despite Lower Compliance?
+
+</h2>
+
+<br>
+
+Section VI compliance checks exact rule matching only.
+
+<br><br>
+
+Vendor accuracy also considers:
+
+<ul>
+
+<li>Historical drawing similarity</li>
+
+<li>Human reviewer confidence</li>
+
+<li>Engineering judgement</li>
+
+<li>Minor acceptable deviations</li>
+
+</ul>
+
+</div>
+
+
+
+
+<div class="section">
+
+<div class="sectiontitle">
+
+Engineering 
+
+</div>
+
+<ul>
+
+{% for i in engineering %}
+
+<li>
+
+{{i}}
+
+<a class="detailbtn"
+href="/detail?issue={{i}}">
+
+Detailed Analysis
+
+</a>
+
+</li>
+
+{% endfor %}
+
+</ul>
+
+</div>
+
+
+
+
+<div class="section">
+
+<div class="sectiontitle">
+
+Layout 
+
+</div>
+
+<ul>
+
+{% for i in layout %}
+
+<li>
+
+{{i}}
+
+<a class="detailbtn"
+href="/detail?issue={{i}}">
+
+Detailed Analysis
+
+</a>
+
+</li>
+
+{% endfor %}
+
+</ul>
+
+</div>
+
+
+
+
+<div class="section">
+
+<div class="sectiontitle">
+
+Foundation 
+
+</div>
+
+<ul>
+
+{% for i in foundation %}
+
+<li>
+
+{{i}}
+
+<a class="detailbtn"
+href="/detail?issue={{i}}">
+
+Detailed Analysis
+
+</a>
+
+</li>
+
+{% endfor %}
+
+</ul>
+
+</div>
+
+
+
+
+<div class="section">
+
+<h2>
+
+Human NTPC Review
+
+</h2>
+
+<br>
+
+<pre>
+
+{{ai_review}}
+
+</pre>
+
+</div>
+
+
+<br><br>
+
+<a href="/">
+
+Upload More Files
+
+</a>
+
+<br><br>
+
+</div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>NTPC AI Learning Centre</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
+        body { background: #eef2f7; padding: 30px; color: #243447; }
+        .topbar { background: #0b566f; min-height: 84px; border-radius: 18px; display: flex; justify-content: space-between; align-items: center; padding: 0 30px; color: white; margin-bottom: 28px; box-shadow: 0 5px 18px rgba(0,0,0,.15); gap: 20px; }
+        .logo { font-size: 24px; font-weight: 800; }
+        .dashboard { background: white; color: #0b566f; padding: 12px 22px; border-radius: 10px; text-decoration: none; font-weight: 700; white-space: nowrap; }
+        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-bottom: 24px; }
+        .card, .box { background: white; border-radius: 18px; box-shadow: 0 2px 14px rgba(0,0,0,.1); }
+        .card { padding: 24px; }
+        .card h3 { color: #667085; font-size: 13px; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 10px; }
+        .card p { color: #0b566f; font-size: 28px; font-weight: 800; }
+        .box { padding: 28px; margin-bottom: 24px; }
+        h1 { color: #0b566f; font-size: 24px; margin-bottom: 18px; }
+        form { display: grid; grid-template-columns: 1.5fr 1fr auto; gap: 14px; align-items: end; }
+        label { display: block; color: #475467; font-weight: 700; margin-bottom: 7px; }
+        input, select { width: 100%; padding: 13px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 15px; background: white; }
+        button { background: #0b566f; color: white; border: 0; padding: 13px 22px; border-radius: 10px; font-weight: 800; cursor: pointer; }
+        .notice { padding: 14px 18px; border-radius: 10px; margin-bottom: 18px; font-weight: 700; }
+        .success { background: #e6f4ea; color: #137333; }
+        .error { background: #fce8e6; color: #c5221f; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #0b566f; color: white; padding: 15px; text-align: left; }
+        td { padding: 15px; border-bottom: 1px solid #e5e7eb; vertical-align: top; }
+        tr:hover { background: #f8fafc; }
+        .snippet { color: #475467; line-height: 1.5; max-width: 900px; }
+        .search-form { grid-template-columns: 1fr auto; margin-bottom: 18px; }
+        .muted { color: #64748b; font-weight: 600; padding: 20px 0; }
+        @media (max-width: 900px) {
+            body { padding: 18px; }
+            .topbar { flex-direction: column; align-items: flex-start; padding: 22px; }
+            .grid { grid-template-columns: repeat(2, 1fr); }
+            form, .search-form { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 560px) {
+            .grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="topbar">
+        <div>
+            <div class="logo">NTPC AI Learning Centre</div>
+            <div>{{ session["role"].replace("_"," ").title() }} {{ session["username"] }}</div>
+        </div>
+        <a href="/home" class="dashboard">Dashboard</a>
+    </div>
+
+    {% if success_message %}
+    <div class="notice success">{{ success_message }}</div>
+    {% endif %}
+    {% if error_message %}
+    <div class="notice error">{{ error_message }}</div>
+    {% endif %}
+
+    <div class="grid">
+        <div class="card">
+            <h3>Total Learned Documents</h3>
+            <p>{{ stats.total_documents }}</p>
+        </div>
+        <div class="card">
+            <h3>Total Extracted Standards</h3>
+            <p>{{ stats.total_standards }}</p>
+        </div>
+        <div class="card">
+            <h3>Knowledge Base Size</h3>
+            <p>{{ stats.knowledge_size }}</p>
+        </div>
+        <div class="card">
+            <h3>Last Learning Date</h3>
+            <p style="font-size: 18px;">{{ stats.last_learning_date }}</p>
+        </div>
+    </div>
+
+    <div class="box">
+        <h1>Upload Knowledge Document</h1>
+        <form action="/learning" method="POST" enctype="multipart/form-data">
+            <div>
+                <label>Knowledge File</label>
+                <input type="file" name="learning_file" accept=".pdf,.docx,.xlsx,.xlsm,.xltx,.xltm,.txt,.csv" required>
+            </div>
+            <div>
+                <label>Document Type</label>
+                <select name="document_type">
+                    <option value="NTPC Guideline">NTPC Guideline</option>
+                    <option value="Engineering Standard">Engineering Standard</option>
+                    <option value="Approved Drawing">Approved Drawing</option>
+                    <option value="Engineering Manual">Engineering Manual</option>
+                    <option value="Safety Requirement">Safety Requirement</option>
+                    <option value="Layout Requirement">Layout Requirement</option>
+                    <option value="Electrical Requirement">Electrical Requirement</option>
+                    <option value="Structural Requirement">Structural Requirement</option>
+                    <option value="DPR / Progress Data">DPR / Progress Data</option>
+                </select>
+            </div>
+            <button type="submit">Learn Document</button>
+        </form>
+    </div>
+
+    <div class="box">
+        <h1>Search Knowledge</h1>
+        <form class="search-form" action="/learning" method="GET">
+            <input type="text" name="q" value="{{ search_query }}" placeholder="Search learned knowledge...">
+            <button type="submit">Search</button>
+        </form>
+
+        {% if search_query %}
+            {% if search_results|length > 0 %}
+            <table>
+                <tr>
+                    <th>Document</th>
+                    <th>Type</th>
+                    <th>Uploaded By</th>
+                    <th>Learned Reference</th>
+                </tr>
+                {% for result in search_results %}
+                <tr>
+                    <td>{{ result[0] }}</td>
+                    <td>{{ result[1] }}</td>
+                    <td>{{ result[2] }}</td>
+                    <td class="snippet">{{ result[4] }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+            {% else %}
+            <div class="muted">No learned references found.</div>
+            {% endif %}
+        {% endif %}
+    </div>
+
+    <div class="box">
+        <h1>Learned Documents</h1>
+        {% if learned_documents|length > 0 %}
+        <table>
+            <tr>
+                <th>Document</th>
+                <th>Type</th>
+                <th>Uploaded By</th>
+                <th>Date</th>
+            </tr>
+            {% for document in learned_documents %}
+            <tr>
+                <td>{{ document[1] }}</td>
+                <td>{{ document[2] }}</td>
+                <td>{{ document[3] }}</td>
+                <td>{{ document[4] }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        {% else %}
+        <div class="muted">No learned documents uploaded yet.</div>
+        {% endif %}
+    </div>
+</body>
+</html>

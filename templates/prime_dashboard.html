@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<title>Prime Admin Dashboard</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#e9eef2;
+padding:40px;
+}
+
+.box{
+background:white;
+padding:30px;
+border-radius:15px;
+box-shadow:0 0 15px rgba(0,0,0,.2);
+}
+
+h1{
+color:#0a6772;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+margin-top:20px;
+}
+
+th,td{
+padding:15px;
+border-bottom:1px solid #ddd;
+text-align:center;
+}
+
+button{
+
+padding:10px 20px;
+border:none;
+border-radius:8px;
+background:#0a6772;
+color:white;
+cursor:pointer;
+
+}
+
+button:hover{
+background:#084d54;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="box">
+
+<h1>
+Prime Admin Panel
+</h1>
+
+<h3>Pending Admin Requests</h3>
+
+<table>
+
+<tr>
+
+<th>Username</th>
+<th>Mobile</th>
+<th>Role</th>
+<th>Action</th>
+
+</tr>
+
+{% for admin in admins %}
+
+<tr>
+
+<td>{{admin[1]}}</td>
+<td>{{admin[2]}}</td>
+<td>{{admin[4]}}</td>
+
+<td>
+
+<a href="/approve_admin/{{admin[1]}}">
+<button>
+
+Approve
+
+</button>
+
+</a>
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+<br><br>
+
+<a href="/home">
+<button>
+Open AI Review Dashboard
+</button>
+</a>
+
+</div>
+
+</body>
+</html>

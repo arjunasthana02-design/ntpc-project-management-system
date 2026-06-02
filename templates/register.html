@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>NTPC Green Register</title>
+<style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:"Segoe UI",Arial,sans-serif;
+}
+
+body{
+min-height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+padding:28px;
+background:
+linear-gradient(rgba(0,86,91,.25),rgba(0,45,54,.62)),
+linear-gradient(115deg,rgba(255,255,255,.12) 0 8%,transparent 8% 100%),
+repeating-linear-gradient(12deg,rgba(255,255,255,.18) 0 2px,transparent 2px 94px),
+repeating-linear-gradient(102deg,rgba(255,255,255,.14) 0 2px,transparent 2px 118px),
+linear-gradient(135deg,#bfe8ff 0%,#65b9d5 28%,#085d67 58%,#013f46 100%);
+overflow:auto;
+}
+
+body::before{
+content:"";
+position:fixed;
+left:-8%;
+right:-8%;
+bottom:-22%;
+height:62%;
+background:
+linear-gradient(90deg,transparent 0 6%,rgba(255,255,255,.42) 6% 6.5%,transparent 6.5% 100%),
+repeating-linear-gradient(90deg,rgba(5,65,88,.78) 0 120px,rgba(10,93,120,.9) 120px 124px),
+repeating-linear-gradient(0deg,rgba(255,255,255,.18) 0 2px,transparent 2px 62px);
+transform:perspective(700px) rotateX(58deg);
+transform-origin:bottom center;
+box-shadow:0 -30px 90px rgba(255,255,255,.18);
+}
+
+body::after{
+content:"NTPC GREEN";
+position:fixed;
+top:6%;
+left:50%;
+transform:translateX(-50%);
+padding:14px 32px;
+background:rgba(255,255,255,.88);
+color:#068044;
+font-size:28px;
+font-weight:900;
+letter-spacing:.5px;
+border-radius:8px;
+box-shadow:0 16px 40px rgba(0,0,0,.22);
+}
+
+.container{
+position:relative;
+z-index:2;
+width:min(500px,100%);
+background:rgba(255,255,255,.94);
+padding:38px 42px;
+border-radius:18px;
+box-shadow:0 24px 70px rgba(0,43,48,.35);
+border:1px solid rgba(255,255,255,.75);
+backdrop-filter:blur(10px);
+}
+
+.eyebrow{
+text-align:center;
+font-size:13px;
+font-weight:800;
+letter-spacing:1.4px;
+text-transform:uppercase;
+color:#008348;
+margin-bottom:8px;
+}
+
+h1{
+margin-bottom:22px;
+text-align:center;
+font-size:32px;
+color:#004b55;
+}
+
+input,
+select{
+width:100%;
+padding:15px 16px;
+margin-top:13px;
+border-radius:12px;
+border:1px solid #b8d5d7;
+font-size:16px;
+outline:none;
+background:#f8fcfc;
+color:#163b40;
+}
+
+input:focus,
+select:focus{
+border-color:#008348;
+box-shadow:0 0 0 4px rgba(0,131,72,.12);
+}
+
+button{
+width:100%;
+padding:16px;
+margin-top:22px;
+background:linear-gradient(90deg,#005b66,#008348);
+border:none;
+border-radius:12px;
+font-size:17px;
+font-weight:800;
+color:white;
+cursor:pointer;
+transition:.25s;
+}
+
+button:hover{
+transform:translateY(-1px);
+box-shadow:0 10px 24px rgba(0,91,102,.28);
+}
+
+.bottom{
+margin-top:24px;
+text-align:center;
+font-size:16px;
+color:#49666a;
+}
+
+a{
+text-decoration:none;
+font-weight:800;
+color:#008348;
+}
+
+a:hover{
+color:#005b66;
+}
+
+@media (max-height: 760px){
+body::after{display:none;}
+.container{padding:30px;}
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+<div class="eyebrow">AI Assisted Drawing Review</div>
+<h1>NTPC Register</h1>
+
+<form method="POST">
+<input type="text" name="username" placeholder="Username" required minlength="4">
+<input type="email" name="email" placeholder="Email Address" required>
+<input type="tel" name="mobile" placeholder="10 Digit Mobile Number" required pattern="[6-9][0-9]{9}" title="Enter valid Indian mobile number">
+<input type="password" name="password" placeholder="Password" required minlength="6">
+<select name="role" required>
+<option value="">Choose Role</option>
+<option value="vendor">Vendor</option>
+<option value="admin">Admin</option>
+</select>
+<button type="submit">Register</button>
+</form>
+
+<div class="bottom">
+Already Registered?
+<a href="/login">Login Here</a>
+</div>
+</div>
+</body>
+</html>

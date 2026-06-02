@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>NTPC Progress Review</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: Calibri, Arial, sans-serif; }
+        body { background: #f4f7fc; padding: 24px; color: #111827; }
+
+        .header-container { display: flex; justify-content: space-between; align-items: center; gap: 18px; margin-bottom: 22px; }
+        .header-container h2 { color: #0f4c81; font-weight: 800; font-size: 26px; }
+        .back-btn { background: #0f4c81; color: white; padding: 11px 22px; border-radius: 6px; text-decoration: none; font-weight: 700; white-space: nowrap; }
+        .back-btn:hover { background: #0b375e; }
+
+        .box { background: white; padding: 24px; border-radius: 8px; box-shadow: 0 4px 18px rgba(0,0,0,.06); margin-bottom: 24px; }
+        h1 { color: #0f4c81; font-size: 21px; margin-bottom: 18px; font-weight: 800; }
+        .chart-wrapper { position: relative; height: 430px; width: 100%; }
+
+        .table-wrap { width: 100%; overflow-x: auto; border: 1px solid #111827; background: white; }
+        table { width: 100%; border-collapse: collapse; min-width: 1120px; }
+        th, td { border: 1px solid #111827; padding: 7px 8px; font-size: 14px; }
+        thead .project-row th { background: #4472c4; color: white; font-size: 18px; font-weight: 800; text-align: center; }
+        thead .yellow-row th { background: #ffff00; height: 22px; padding: 0; }
+        thead .columns-row th { background: #a9e7c5; color: #002060; font-weight: 800; text-align: center; }
+        tbody tr:nth-child(even) td { background: #f8fbff; }
+        tbody tr:hover td { background: #fff2cc; }
+        td.activity { font-weight: 700; color: #111827; }
+        td.num { text-align: right; white-space: nowrap; }
+        td.center { text-align: center; }
+        .completion-cell { min-width: 110px; font-weight: 800; text-align: right; position: relative; overflow: hidden; }
+        .completion-cell span { position: relative; z-index: 1; }
+        .completion-fill { position: absolute; inset: 3px auto 3px 3px; background: linear-gradient(90deg, #7ea6d8, #dce8f7); z-index: 0; }
+
+        @media (max-width: 900px) {
+            body { padding: 16px; }
+            .header-container { align-items: flex-start; flex-direction: column; }
+            .box { padding: 18px; }
+            .chart-wrapper { height: 360px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-container">
+        <h2>NTPC Progress Review</h2>
+        <a href="/home" class="back-btn">Back to Dashboard</a>
+    </div>
+
+    <div class="box">
+        <h1>Pile Casting Details</h1>
+        <div class="chart-wrapper">
+            <canvas id="pileCastingChart"></canvas>
+        </div>
+    </div>
+
+    <div class="box">
+        <h1>Module Installation Details</h1>
+        <div class="chart-wrapper">
+            <canvas id="moduleInstallationChart"></canvas>
+        </div>
+    </div>
+
+    <div class="box">
+        <h1>Activity Review System</h1>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr class="project-row">
+                        <th colspan="10">BoS Package for 1200 MW Solar PV Project at Khavda RE Park, Rann of Kutch, Gujarat</th>
+                    </tr>
+                    <tr class="yellow-row">
+                        <th colspan="10"></th>
+                    </tr>
+                    <tr class="columns-row">
+                        <th>Sr.No</th>
+                        <th>Activity</th>
+                        <th>UoM</th>
+                        <th>Scope</th>
+                        <th>Previous<br>Day Cumm</th>
+                        <th>Today<br>Progress</th>
+                        <th>Cumulative<br>Completion</th>
+                        <th>To be<br>completed</th>
+                        <th>% of<br>Completion</th>
+                        <th>Remarks</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in detailed_activity_table %}
+                    <tr>
+                        <td class="center">{{ row.serial_no }}</td>
+                        <td class="activity">{{ row.activity }}</td>
+                        <td class="center">{{ row.uom }}</td>
+                        <td class="num">{{ row.scope }}</td>
+                        <td class="num">{{ row.previous_day_cumm }}</td>
+                        <td class="num">{{ row.progress }}</td>
+                        <td class="num">{{ row.cumulative_completion }}</td>
+                        <td class="num">{{ row.to_be_completed }}</td>
+                        <td class="completion-cell">
+                            <div class="completion-fill" style="width: {{ row.completion_width }}%;"></div>
+                            <span>{{ row.completion }}%</span>
+                        </td>
+                        <td>{{ row.remarks }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="10" style="text-align: center; font-weight: 700; color: #64748b;">0</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const pileCastingChart = {{ pile_casting_chart|default({})|tojson|safe }};
+        const moduleInstallationChart = {{ module_installation_chart|default({})|tojson|safe }};
+
+        function renderActivityChart(canvasId, activityData) {
+            new Chart(document.getElementById(canvasId).getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: activityData.dates || [],
+                    datasets: [
+                        { label: 'Scope', data: activityData.scope || [], backgroundColor: 'rgba(68, 114, 196, 0.78)', borderColor: '#4472c4', borderWidth: 1 },
+                        { label: 'Previous Day Cumm', data: activityData.previous || [], backgroundColor: 'rgba(112, 173, 71, 0.78)', borderColor: '#70ad47', borderWidth: 1 },
+                        { label: 'Today Progress', data: activityData.today || [], backgroundColor: 'rgba(237, 125, 49, 0.82)', borderColor: '#ed7d31', borderWidth: 1 },
+                        { label: 'Cumulative Completion', data: activityData.cumulative || [], backgroundColor: 'rgba(91, 155, 213, 0.78)', borderColor: '#5b9bd5', borderWidth: 1 },
+                        { label: 'To be completed', data: activityData.to_be_completed || [], backgroundColor: 'rgba(165, 165, 165, 0.78)', borderColor: '#a5a5a5', borderWidth: 1 }
+                    ].map((dataset) => ({ ...dataset, minBarLength: 4 }))
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top', labels: { font: { weight: 'bold' } } },
+                        tooltip: { mode: 'index', intersect: false }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Dates', font: { weight: 'bold' } },
+                            ticks: { autoSkip: false, maxRotation: 45, minRotation: 0 }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'Values', font: { weight: 'bold' } },
+                            grid: { color: '#edf2f7' },
+                            ticks: {
+                                callback: (value) => Number(value).toLocaleString()
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        renderActivityChart('pileCastingChart', pileCastingChart);
+        renderActivityChart('moduleInstallationChart', moduleInstallationChart);
+    </script>
+</body>
+</html>

@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>NTPC AI Review System</title>
+
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial;
+}
+
+body{
+background:#eef2f7;
+}
+
+.topbar{
+
+height:80px;
+background:#0b566f;
+
+display:flex;
+justify-content:space-between;
+align-items:center;
+
+padding-left:40px;
+padding-right:40px;
+
+color:white;
+
+}
+
+.logo{
+
+font-size:28px;
+font-weight:bold;
+
+}
+
+.container{
+
+display:flex;
+
+}
+
+.sidebar{
+
+width:310px;
+height:100vh;
+background:white;
+padding-top:25px;
+
+box-shadow:
+2px 0 15px rgba(0,0,0,.08);
+
+}
+
+.menu{
+
+display:block;
+padding:20px;
+
+font-size:20px;
+
+cursor:pointer;
+
+text-decoration:none;
+
+color:black;
+
+transition:.3s;
+
+}
+
+.menu:hover{
+
+background:#e8f3fa;
+
+padding-left:30px;
+
+color:#0b566f;
+
+}
+
+.content{
+
+flex:1;
+
+padding:40px;
+
+}
+
+.hero{
+
+background:
+
+linear-gradient(
+90deg,
+#0d4d6c,
+green
+);
+
+padding:50px;
+
+border-radius:30px;
+
+color:white;
+
+margin-bottom:30px;
+
+}
+
+.cards{
+
+display:grid;
+
+grid-template-columns:
+repeat(5,1fr);
+
+gap:20px;
+
+margin-bottom:30px;
+
+}
+
+.card{
+
+background:white;
+
+padding:35px;
+
+border-radius:20px;
+
+text-align:center;
+
+box-shadow:
+0 2px 14px rgba(0,0,0,.1);
+
+}
+
+.number{
+
+font-size:50px;
+
+font-weight:bold;
+
+color:#0b566f;
+
+margin-top:15px;
+
+}
+
+.uploadbox{
+
+background:white;
+
+padding:40px;
+
+border-radius:25px;
+
+box-shadow:
+0 2px 14px rgba(0,0,0,.1);
+
+}
+
+input[type=file]{
+
+width:100%;
+
+padding:25px;
+
+border:2px dashed #0b566f;
+
+border-radius:15px;
+
+}
+
+button{
+
+background:#0b566f;
+
+color:white;
+
+border:none;
+
+padding:18px 35px;
+
+font-size:22px;
+
+margin-top:20px;
+
+border-radius:12px;
+
+cursor:pointer;
+
+}
+
+button:hover{
+
+background:#08384a;
+
+}
+
+#loadingScreen{
+
+display:none;
+
+position:fixed;
+
+top:0;
+left:0;
+
+width:100%;
+height:100%;
+
+background:rgba(0,0,0,.87);
+
+z-index:99999;
+
+color:white;
+
+text-align:center;
+
+padding-top:15%;
+
+}
+
+.spinner{
+
+width:90px;
+height:90px;
+
+border:10px solid #eee;
+
+border-top:10px solid cyan;
+
+border-radius:50%;
+
+margin:auto;
+
+margin-bottom:30px;
+
+animation:spin 1s linear infinite;
+
+}
+
+@keyframes spin{
+
+100%{
+
+transform:rotate(360deg);
+
+}
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="topbar">
+
+<div class="logo">
+
+NTPC AI Drawing Intelligence Platform
+
+</div>
+
+<div>
+
+{{session["role"].replace("_"," ").title()}}
+{{session["username"]}}
+
+</div>
+
+</div>
+
+
+<div class="container">
+
+
+
+<div class="sidebar">
+
+<a href="/home" class="menu">
+Dashboard
+</a>
+
+<a href="/vendor_dashboard" class="menu">
+Vendor Uploads
+</a>
+
+<a href="/pending" class="menu">
+Pending Reviews
+</a>
+
+<a href="/approved" class="menu">
+Approved Drawings
+</a>
+
+<a href="/rejected" class="menu">
+Rejected Drawings
+</a>
+
+<a href="/prime_dashboard" class="menu">
+Admin Management
+</a>
+
+<a href="/learning" class="menu">
+AI Learning Center
+</a>
+
+<a href="/progress_review" class="menu">
+Progress Review
+</a>
+
+</div>
+
+
+
+<div class="content">
+
+<div class="hero">
+
+<h1>
+
+AI Assisted NTPC Drawing Intelligence Platform
+
+</h1>
+
+<br>
+
+<h2>
+
+Human Intelligence + AI Assisted Review
+
+</h2>
+
+</div>
+
+
+
+<div class="cards">
+
+
+<div class="card">
+
+<h2>Total Drawings</h2>
+
+<div class="number">
+
+{{total_drawings}}
+
+</div>
+
+</div>
+
+
+
+<div class="card">
+
+<h2>Approved</h2>
+
+<div class="number">
+
+{{approved_count}}
+
+</div>
+
+</div>
+
+
+
+<div class="card">
+
+<h2>Pending</h2>
+
+<div class="number">
+
+{{pending_count}}
+
+</div>
+
+</div>
+
+
+
+<div class="card">
+
+<h2>AI Confidence</h2>
+
+<div class="number">
+
+{{ai_confidence}}
+
+</div>
+
+</div>
+
+
+
+<div class="card">
+
+<h2>Human Learning</h2>
+
+<div class="number">
+
+ON
+
+</div>
+
+</div>
+
+
+</div>
+
+
+
+<div class="uploadbox">
+
+<h1>
+
+Upload Vendor Drawings
+
+</h1>
+
+<br><br>
+
+<form
+action="/upload"
+method="POST"
+enctype="multipart/form-data"
+onsubmit="startReview()"
+>
+
+<input
+type="file"
+name="vendor_pdf"
+multiple
+required
+>
+
+<button>
+
+Start AI Review
+
+</button>
+
+</form>
+
+</div>
+
+</div>
+
+<div id="loadingScreen">
+
+<div class="spinner"></div>
+
+<h1>
+
+AI Human Intelligence Engine Running
+
+</h1>
+
+<br>
+
+<h2 id="step">
+
+Initializing...
+
+</h2>
+
+</div>
+
+
+
+<script>
+
+function startReview(){
+
+document
+.getElementById(
+"loadingScreen"
+)
+.style.display=
+"block"
+
+
+steps=[
+
+"Reading vendor PDFs",
+
+"Checking engineering rules",
+
+"Comparing approved drawings",
+
+"Applying human reviewer logic",
+
+"Checking Section VI",
+
+"Generating NTPC report"
+
+]
+
+i=0
+
+
+setInterval(function(){
+
+if(i<steps.length){
+
+document
+.getElementById(
+"step"
+).innerHTML=steps[i]
+
+i++
+
+}
+
+},1200)
+
+}
+
+</script>
+
+</body>
+</html>

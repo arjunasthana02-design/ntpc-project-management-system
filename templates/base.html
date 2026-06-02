@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<title>NTPC AI Review System</title>
+
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
+background:#F4F7FA;
+overflow-x:hidden;
+}
+
+.topbar{
+
+position:fixed;
+
+top:0;
+left:0;
+right:0;
+
+height:75px;
+
+background:#0F4C5C;
+
+display:flex;
+align-items:center;
+justify-content:space-between;
+
+padding:0 35px;
+
+box-shadow:0 2px 15px rgba(0,0,0,.2);
+
+z-index:1000;
+
+}
+
+.lefthead{
+
+display:flex;
+align-items:center;
+gap:15px;
+
+}
+
+.logo{
+
+height:48px;
+width:48px;
+
+background:white;
+
+border-radius:50%;
+
+display:flex;
+align-items:center;
+justify-content:center;
+
+font-size:22px;
+color:#0F4C5C;
+
+}
+
+.title{
+
+color:white;
+font-size:25px;
+font-weight:bold;
+
+}
+
+.righthead{
+
+display:flex;
+align-items:center;
+gap:25px;
+
+color:white;
+
+font-size:22px;
+
+}
+
+.profile{
+
+display:flex;
+align-items:center;
+gap:12px;
+
+}
+
+.avatar{
+
+height:42px;
+width:42px;
+
+border-radius:50%;
+
+background:#D6EAF8;
+
+color:#0F4C5C;
+
+display:flex;
+align-items:center;
+justify-content:center;
+
+font-weight:bold;
+
+}
+
+.sidebar{
+
+position:fixed;
+
+left:0;
+top:75px;
+
+width:260px;
+
+bottom:0;
+
+background:white;
+
+padding-top:20px;
+
+box-shadow:3px 0 12px rgba(0,0,0,.08);
+
+overflow:auto;
+
+}
+
+.menu{
+
+padding:14px 25px;
+
+display:flex;
+
+gap:15px;
+
+align-items:center;
+
+font-size:17px;
+
+cursor:pointer;
+
+color:#444;
+
+transition:.3s;
+
+}
+
+.menu:hover{
+
+background:#D6EAF8;
+
+border-left:6px solid #0F4C5C;
+
+padding-left:19px;
+
+}
+
+.active{
+
+background:#D6EAF8;
+
+border-left:6px solid #0F4C5C;
+
+padding-left:19px;
+
+font-weight:bold;
+
+}
+
+.main{
+
+margin-left:260px;
+
+margin-top:75px;
+
+padding:35px;
+
+}
+
+.hero{
+
+background:linear-gradient(
+135deg,
+#0F4C5C,
+#1B5E20
+);
+
+color:white;
+
+padding:40px;
+
+border-radius:25px;
+
+box-shadow:0 3px 18px rgba(0,0,0,.2);
+
+}
+
+.hero h1{
+
+font-size:36px;
+margin-bottom:10px;
+
+}
+
+.hero p{
+
+font-size:18px;
+opacity:.9;
+
+}
+
+.cards{
+
+display:grid;
+
+grid-template-columns:
+repeat(5,1fr);
+
+gap:20px;
+
+margin-top:30px;
+
+}
+
+.card{
+
+background:white;
+
+padding:30px;
+
+border-radius:20px;
+
+box-shadow:0 3px 18px rgba(0,0,0,.1);
+
+text-align:center;
+
+}
+
+.number{
+
+font-size:38px;
+font-weight:bold;
+color:#0F4C5C;
+
+margin-top:10px;
+
+}
+
+.bigbox{
+
+background:white;
+
+margin-top:25px;
+
+padding:30px;
+
+border-radius:20px;
+
+box-shadow:0 3px 18px rgba(0,0,0,.1);
+
+}
+
+table{
+
+width:100%;
+
+border-collapse:collapse;
+
+margin-top:20px;
+
+}
+
+th{
+
+background:#0F4C5C;
+color:white;
+padding:15px;
+
+}
+
+td{
+
+padding:15px;
+
+border-bottom:
+1px solid #eee;
+
+}
+
+.badge{
+
+padding:8px 14px;
+
+border-radius:20px;
+
+font-weight:bold;
+
+}
+
+.green{
+
+background:#d4edda;
+
+color:green;
+
+}
+
+.yellow{
+
+background:#fff3cd;
+
+color:#946000;
+
+}
+
+.red{
+
+background:#ffd6d6;
+
+color:red;
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="topbar">
+
+<div class="lefthead">
+
+<div class="logo">
+
+<i class="fa-solid fa-bolt"></i>
+
+</div>
+
+<div class="title">
+
+NTPC AI Drawing Intelligence Platform
+
+</div>
+
+</div>
+
+
+<div class="righthead">
+
+<i class="fa-solid fa-bell"></i>
+
+<div class="profile">
+
+<div class="avatar">
+
+A
+
+</div>
+
+<div>
+
+Prime Admin<br>
+
+Arjun
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+
+
+
+<div class="sidebar">
+
+<div class="menu active">
+
+<i class="fa-solid fa-chart-line"></i>
+
+Dashboard
+
+</div>
+
+
+<div class="menu">
+
+<i class="fa-solid fa-upload"></i>
+
+Vendor Uploads
+
+</div>
+
+
+<div class="menu">
+
+<i class="fa-solid fa-clock"></i>
+
+Pending Reviews
+
+</div>
+
+
+<div class="menu">
+
+<i class="fa-solid fa-check"></i>
+
+Approved Drawings
+
+</div>
+
+
+<div class="menu">
+
+<i class="fa-solid fa-xmark"></i>
+
+Rejected Drawings
+
+</div>
+
+
+<div class="menu">
+
+<i class="fa-solid fa-users"></i>
+
+Admin Management
+
+</div>
+
+
+<div class="menu">
+
+<i class="fa-solid fa-brain"></i>
+
+AI Learning Center
+
+</div>
+
+
+<div class="menu">
+
+<i class="fa-solid fa-clock-rotate-left"></i>
+
+Review History
+
+</div>
+
+
+<div class="menu">
+
+<i class="fa-solid fa-chart-pie"></i>
+
+Analytics
+
+</div>
+
+</div>
+
+
+
+
+<div class="main">
+
+{% block content %}
+
+{% endblock %}
+
+</div>
+
+</body>
+
+</html>

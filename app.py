@@ -246,6 +246,56 @@ def initialize_database_schemas():
             if not cursor.fetchone():
                 cursor.execute(f"ALTER TABLE ai_learning ADD COLUMN {column_name} {column_type}")
 
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS resource_status (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                resource_type VARCHAR(60),
+                resource_name VARCHAR(150),
+                allocated DOUBLE DEFAULT 0,
+                utilized DOUBLE DEFAULT 0,
+                available DOUBLE DEFAULT 0,
+                shortage DOUBLE DEFAULT 0,
+                performance_score DOUBLE DEFAULT 0,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS budget_status (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                department VARCHAR(120),
+                allocated_budget DOUBLE DEFAULT 0,
+                utilized_budget DOUBLE DEFAULT 0,
+                forecasted_cost DOUBLE DEFAULT 0,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        cursor.execute("SELECT COUNT(*) FROM resource_status")
+        if (cursor.fetchone() or [0])[0] == 0:
+            seed_resources = [
+                ("Manpower", "Civil erection teams", 180, 142, 38, 0, 79),
+                ("Machinery", "Pile rigs and cranes", 42, 33, 9, 2, 76),
+                ("Equipment", "Survey and testing equipment", 65, 51, 14, 1, 82),
+                ("Materials", "Modules, steel and concrete", 100, 73, 27, 4, 74),
+            ]
+            cursor.current.executemany("""
+                INSERT INTO resource_status
+                (resource_type, resource_name, allocated, utilized, available, shortage, performance_score)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """, seed_resources)
+        cursor.execute("SELECT COUNT(*) FROM budget_status")
+        if (cursor.fetchone() or [0])[0] == 0:
+            seed_budgets = [
+                ("Civil Works", 120000000, 78200000, 118500000),
+                ("Electrical Works", 95000000, 54100000, 90800000),
+                ("Module Installation", 150000000, 83200000, 146000000),
+                ("Quality and Safety", 28000000, 16200000, 26400000),
+            ]
+            cursor.current.executemany("""
+                INSERT INTO budget_status
+                (department, allocated_budget, utilized_budget, forecasted_cost)
+                VALUES (%s, %s, %s, %s)
+            """, seed_budgets)
+
         prime_username = os.getenv("PRIME_ADMIN_USERNAME", "primeadmin")
         prime_password = os.getenv("PRIME_ADMIN_PASSWORD", "primeadmin123")
         prime_mobile = os.getenv("PRIME_ADMIN_MOBILE", "9999999999")
@@ -511,67 +561,7 @@ def build_vendor_intelligence():
         vendor["rank"] = index
     return ranked
 
-def ensure_executive_tables():
-    try:
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS resource_status (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                resource_type VARCHAR(60),
-                resource_name VARCHAR(150),
-                allocated DOUBLE DEFAULT 0,
-                utilized DOUBLE DEFAULT 0,
-                available DOUBLE DEFAULT 0,
-                shortage DOUBLE DEFAULT 0,
-                performance_score DOUBLE DEFAULT 0,
-                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-            )
-        """)
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS budget_status (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                department VARCHAR(120),
-                allocated_budget DOUBLE DEFAULT 0,
-                utilized_budget DOUBLE DEFAULT 0,
-                forecasted_cost DOUBLE DEFAULT 0,
-                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-            )
-        """)
-        cursor.execute("SELECT COUNT(*) FROM resource_status")
-        if (cursor.fetchone() or [0])[0] == 0:
-            seed_resources = [
-                ("Manpower", "Civil erection teams", 180, 142, 38, 0, 79),
-                ("Machinery", "Pile rigs and cranes", 42, 33, 9, 2, 76),
-                ("Equipment", "Survey and testing equipment", 65, 51, 14, 1, 82),
-                ("Materials", "Modules, steel and concrete", 100, 73, 27, 4, 74),
-            ]
-            cursor.current.executemany("""
-                INSERT INTO resource_status
-                (resource_type, resource_name, allocated, utilized, available, shortage, performance_score)
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
-            """, seed_resources)
-        cursor.execute("SELECT COUNT(*) FROM budget_status")
-        if (cursor.fetchone() or [0])[0] == 0:
-            seed_budgets = [
-                ("Civil Works", 120000000, 78200000, 118500000),
-                ("Electrical Works", 95000000, 54100000, 90800000),
-                ("Module Installation", 150000000, 83200000, 146000000),
-                ("Quality and Safety", 28000000, 16200000, 26400000),
-            ]
-            cursor.current.executemany("""
-                INSERT INTO budget_status
-                (department, allocated_budget, utilized_budget, forecasted_cost)
-                VALUES (%s, %s, %s, %s)
-            """, seed_budgets)
-        db.commit()
-    except Exception as e:
-        try:
-            db.rollback()
-        except Exception:
-            pass
-        print("Executive table setup warning:", e)
-
 def build_resource_summary():
-    ensure_executive_tables()
     resources = fetch_rows("""
         SELECT resource_type, resource_name, allocated, utilized, available, shortage, performance_score
         FROM resource_status
@@ -598,7 +588,6 @@ def build_resource_summary():
     return {"items": items, "shortage_count": shortage_count, "avg_utilization": avg_utilization, "avg_performance": avg_performance}
 
 def build_budget_summary():
-    ensure_executive_tables()
     rows = fetch_rows("""
         SELECT department, allocated_budget, utilized_budget, forecasted_cost
         FROM budget_status

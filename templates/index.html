@@ -1,548 +1,258 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-
-<title>NTPC AI Review System</title>
-
-<meta name="viewport" content="width=device-width,initial-scale=1">
-
-<style>
-
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:Arial;
-}
-
-body{
-background:#eef2f7;
-}
-
-.topbar{
-
-height:80px;
-background:#0b566f;
-
-display:flex;
-justify-content:space-between;
-align-items:center;
-
-padding-left:40px;
-padding-right:40px;
-
-color:white;
-
-}
-
-.logo{
-
-font-size:28px;
-font-weight:bold;
-
-}
-
-.container{
-
-display:flex;
-
-}
-
-.sidebar{
-
-width:310px;
-height:100vh;
-background:white;
-padding-top:25px;
-
-box-shadow:
-2px 0 15px rgba(0,0,0,.08);
-
-}
-
-.menu{
-
-display:block;
-padding:20px;
-
-font-size:20px;
-
-cursor:pointer;
-
-text-decoration:none;
-
-color:black;
-
-transition:.3s;
-
-}
-
-.menu:hover{
-
-background:#e8f3fa;
-
-padding-left:30px;
-
-color:#0b566f;
-
-}
-
-.content{
-
-flex:1;
-
-padding:40px;
-
-}
-
-.hero{
-
-background:
-
-linear-gradient(
-90deg,
-#0d4d6c,
-green
-);
-
-padding:50px;
-
-border-radius:30px;
-
-color:white;
-
-margin-bottom:30px;
-
-}
-
-.cards{
-
-display:grid;
-
-grid-template-columns:
-repeat(5,1fr);
-
-gap:20px;
-
-margin-bottom:30px;
-
-}
-
-.card{
-
-background:white;
-
-padding:35px;
-
-border-radius:20px;
-
-text-align:center;
-
-box-shadow:
-0 2px 14px rgba(0,0,0,.1);
-
-}
-
-.number{
-
-font-size:50px;
-
-font-weight:bold;
-
-color:#0b566f;
-
-margin-top:15px;
-
-}
-
-.uploadbox{
-
-background:white;
-
-padding:40px;
-
-border-radius:25px;
-
-box-shadow:
-0 2px 14px rgba(0,0,0,.1);
-
-}
-
-input[type=file]{
-
-width:100%;
-
-padding:25px;
-
-border:2px dashed #0b566f;
-
-border-radius:15px;
-
-}
-
-button{
-
-background:#0b566f;
-
-color:white;
-
-border:none;
-
-padding:18px 35px;
-
-font-size:22px;
-
-margin-top:20px;
-
-border-radius:12px;
-
-cursor:pointer;
-
-}
-
-button:hover{
-
-background:#08384a;
-
-}
-
-#loadingScreen{
-
-display:none;
-
-position:fixed;
-
-top:0;
-left:0;
-
-width:100%;
-height:100%;
-
-background:rgba(0,0,0,.87);
-
-z-index:99999;
-
-color:white;
-
-text-align:center;
-
-padding-top:15%;
-
-}
-
-.spinner{
-
-width:90px;
-height:90px;
-
-border:10px solid #eee;
-
-border-top:10px solid cyan;
-
-border-radius:50%;
-
-margin:auto;
-
-margin-bottom:30px;
-
-animation:spin 1s linear infinite;
-
-}
-
-@keyframes spin{
-
-100%{
-
-transform:rotate(360deg);
-
-}
-
-}
-
-</style>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>NTPC AI Review System</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, Helvetica, sans-serif; }
+        body { background: #edf2f7; color: #172033; overflow-x: hidden; }
+        .topbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 76px;
+            background: #075966;
+            color: white;
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 28px;
+            box-shadow: 0 2px 16px rgba(15, 23, 42, .24);
+        }
+        .brand { display: flex; align-items: center; gap: 16px; min-width: 0; }
+        .toggle {
+            height: 42px;
+            width: 42px;
+            border: 0;
+            border-radius: 8px;
+            background: rgba(255,255,255,.14);
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        .logo { font-size: 24px; font-weight: 800; white-space: nowrap; }
+        .user { font-weight: 700; text-align: right; line-height: 1.35; }
+        .layout { display: flex; padding-top: 76px; min-height: 100vh; }
+        .sidebar {
+            position: fixed;
+            top: 76px;
+            left: 0;
+            bottom: 0;
+            width: 292px;
+            background: white;
+            padding: 18px 0;
+            box-shadow: 4px 0 18px rgba(15, 23, 42, .10);
+            z-index: 15;
+            overflow-y: auto;
+            transform: translateX(0);
+            transition: transform .28s ease;
+        }
+        body.sidebar-collapsed .sidebar { transform: translateX(-292px); }
+        .menu {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 24px;
+            color: #172033;
+            text-decoration: none;
+            font-size: 17px;
+            font-weight: 700;
+            border-left: 5px solid transparent;
+            transition: background .2s ease, color .2s ease, border-color .2s ease;
+        }
+        .menu:hover, .menu.active {
+            background: #e6f4f7;
+            color: #075966;
+            border-left-color: #075966;
+        }
+        .main {
+            width: 100%;
+            margin-left: 292px;
+            padding: 34px;
+            transition: margin-left .28s ease;
+        }
+        body.sidebar-collapsed .main { margin-left: 0; }
+        .hero {
+            min-height: 220px;
+            background:
+                linear-gradient(90deg, rgba(7,89,102,.96), rgba(8,111,66,.94)),
+                url("/static/screenshots/page_3.png");
+            background-size: cover;
+            background-position: center;
+            color: white;
+            border-radius: 10px;
+            padding: 34px;
+            display: grid;
+            align-content: center;
+            margin-bottom: 22px;
+            box-shadow: 0 12px 30px rgba(15, 23, 42, .16);
+        }
+        .hero h1 { font-size: 34px; line-height: 1.18; margin-bottom: 10px; max-width: 900px; }
+        .hero p { font-size: 17px; line-height: 1.55; max-width: 980px; color: #e8fbff; font-weight: 600; }
+        .kpis {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(150px, 1fr));
+            gap: 16px;
+            margin-bottom: 22px;
+        }
+        .card, .panel, .action {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 18px rgba(15, 23, 42, .08);
+        }
+        .card { padding: 24px; min-height: 132px; border-top: 4px solid #075966; }
+        .card h2 { color: #64748b; font-size: 13px; text-transform: uppercase; letter-spacing: .4px; margin-bottom: 14px; }
+        .number { color: #075966; font-size: 42px; font-weight: 800; line-height: 1; }
+        .content-grid { display: grid; grid-template-columns: 1.3fr .7fr; gap: 20px; }
+        .panel { padding: 26px; }
+        .panel h2 { color: #075966; font-size: 22px; margin-bottom: 14px; }
+        .summary { color: #334155; font-size: 16px; line-height: 1.65; font-weight: 700; }
+        .actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 18px; }
+        .action {
+            display: block;
+            padding: 18px;
+            color: #172033;
+            text-decoration: none;
+            border: 1px solid #e2e8f0;
+            transition: transform .18s ease, border-color .18s ease;
+        }
+        .action:hover { transform: translateY(-2px); border-color: #075966; }
+        .action strong { display: block; color: #075966; font-size: 17px; margin-bottom: 6px; }
+        .action span { color: #64748b; font-weight: 700; font-size: 13px; line-height: 1.45; }
+        .status-list { display: grid; gap: 12px; }
+        .status {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 0;
+            border-bottom: 1px solid #e5e7eb;
+            font-weight: 800;
+        }
+        .status:last-child { border-bottom: 0; }
+        .pill { border-radius: 999px; padding: 7px 12px; background: #e6f4f7; color: #075966; white-space: nowrap; }
+        @media (max-width: 1100px) {
+            .kpis { grid-template-columns: repeat(2, 1fr); }
+            .content-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 780px) {
+            .topbar { padding: 0 16px; }
+            .logo { font-size: 18px; }
+            .user { display: none; }
+            .sidebar { transform: translateX(-292px); }
+            body:not(.sidebar-collapsed) .sidebar { transform: translateX(0); }
+            .main, body.sidebar-collapsed .main { margin-left: 0; padding: 20px; }
+            .hero h1 { font-size: 26px; }
+            .kpis, .actions { grid-template-columns: 1fr; }
+        }
+    </style>
 </head>
-
 <body>
-
-<div class="topbar">
-
-<div class="logo">
-
-NTPC AI Drawing Intelligence Platform
-
-</div>
-
-<div>
-
-{{session["role"].replace("_"," ").title()}}
-{{session["username"]}}
-
-</div>
-
-</div>
-
-
-<div class="container">
-
-
-
-<div class="sidebar">
-
-<a href="/home" class="menu">
-Dashboard
-</a>
-
-<a href="/vendor_dashboard" class="menu">
-Vendor Uploads
-</a>
-
-<a href="/pending" class="menu">
-Pending Reviews
-</a>
-
-<a href="/approved" class="menu">
-Approved Drawings
-</a>
-
-<a href="/rejected" class="menu">
-Rejected Drawings
-</a>
-
-<a href="/prime_dashboard" class="menu">
-Admin Management
-</a>
-
-<a href="/learning" class="menu">
-AI Learning Center
-</a>
-
-<a href="/progress_review" class="menu">
-Progress Review
-</a>
-
-<a href="/executive" class="menu">
-Project Director Command Centre
-</a>
-
-<a href="/vendor_intelligence" class="menu">
-Vendor Intelligence
-</a>
-
-<a href="/risk_management" class="menu">
-Risk Management
-</a>
-
-</div>
-
-
-
-<div class="content">
-
-<div class="hero">
-
-<h1>
-
-AI Assisted NTPC Drawing Intelligence Platform
-
-</h1>
-
-<br>
-
-<h2>
-
-Human Intelligence + AI Assisted Review
-
-</h2>
-
-</div>
-
-
-
-<div class="cards">
-
-
-<div class="card">
-
-<h2>Total Drawings</h2>
-
-<div class="number">
-
-{{total_drawings}}
-
-</div>
-
-</div>
-
-
-
-<div class="card">
-
-<h2>Approved</h2>
-
-<div class="number">
-
-{{approved_count}}
-
-</div>
-
-</div>
-
-
-
-<div class="card">
-
-<h2>Pending</h2>
-
-<div class="number">
-
-{{pending_count}}
-
-</div>
-
-</div>
-
-
-
-<div class="card">
-
-<h2>AI Confidence</h2>
-
-<div class="number">
-
-{{ai_confidence}}
-
-</div>
-
-</div>
-
-
-
-<div class="card">
-
-<h2>Human Learning</h2>
-
-<div class="number">
-
-ON
-
-</div>
-
-</div>
-
-
-</div>
-
-
-
-<div class="uploadbox">
-
-<h1>
-
-Upload Vendor Drawings
-
-</h1>
-
-<br><br>
-
-<form
-action="/upload"
-method="POST"
-enctype="multipart/form-data"
-onsubmit="startReview()"
->
-
-<input
-type="file"
-name="vendor_pdf"
-multiple
-required
->
-
-<button>
-
-Start AI Review
-
-</button>
-
-</form>
-
-</div>
-
-</div>
-
-<div id="loadingScreen">
-
-<div class="spinner"></div>
-
-<h1>
-
-AI Human Intelligence Engine Running
-
-</h1>
-
-<br>
-
-<h2 id="step">
-
-Initializing...
-
-</h2>
-
-</div>
-
-
-
-<script>
-
-function startReview(){
-
-document
-.getElementById(
-"loadingScreen"
-)
-.style.display=
-"block"
-
-
-steps=[
-
-"Reading vendor PDFs",
-
-"Checking engineering rules",
-
-"Comparing approved drawings",
-
-"Applying human reviewer logic",
-
-"Checking Section VI",
-
-"Generating NTPC report"
-
-]
-
-i=0
-
-
-setInterval(function(){
-
-if(i<steps.length){
-
-document
-.getElementById(
-"step"
-).innerHTML=steps[i]
-
-i++
-
-}
-
-},1200)
-
-}
-
-</script>
-
+    <div class="topbar">
+        <div class="brand">
+            <button class="toggle" type="button" onclick="toggleSidebar()" aria-label="Toggle navigation">☰</button>
+            <div class="logo">NTPC AI Review System</div>
+        </div>
+        <div class="user">
+            {{ session["role"].replace("_"," ").title() }}<br>
+            {{ session["username"] }}
+        </div>
+    </div>
+
+    <div class="layout">
+        <aside class="sidebar">
+            <a href="/home" class="menu active">Dashboard</a>
+            <a href="/executive" class="menu">Project Director Command Centre</a>
+            <a href="/vendor_dashboard" class="menu">Vendor Dashboard</a>
+            <a href="/pending" class="menu">Pending Reviews</a>
+            <a href="/approved" class="menu">Approved Drawings</a>
+            <a href="/rejected" class="menu">Rejected Drawings</a>
+            <a href="/prime_dashboard" class="menu">Admin Management</a>
+            <a href="/learning" class="menu">AI Learning Centre</a>
+            <a href="/progress_review" class="menu">Progress Review</a>
+        </aside>
+
+        <main class="main">
+            <section class="hero">
+                <h1>NTPC Project Management and AI Drawing Review Command Workspace</h1>
+                <p>Executive control view for drawings, approvals, DPR progress, learning intelligence, and review performance across the project.</p>
+            </section>
+
+            <section class="kpis">
+                <div class="card">
+                    <h2>Total Drawings</h2>
+                    <div class="number">{{ total_drawings }}</div>
+                </div>
+                <div class="card">
+                    <h2>Approved</h2>
+                    <div class="number">{{ approved_count }}</div>
+                </div>
+                <div class="card">
+                    <h2>Pending</h2>
+                    <div class="number">{{ pending_count }}</div>
+                </div>
+                <div class="card">
+                    <h2>AI Confidence</h2>
+                    <div class="number">{{ ai_confidence }}</div>
+                </div>
+                <div class="card">
+                    <h2>Human Learning</h2>
+                    <div class="number">ON</div>
+                </div>
+            </section>
+
+            <section class="content-grid">
+                <div class="panel">
+                    <h2>Management Overview</h2>
+                    <p class="summary">
+                        The main dashboard is now focused on project-level visibility. Drawing upload actions remain inside the vendor workflow, while executive intelligence, vendor ratings, risk status, resources, budget, ETA forecasts, document intelligence, and assistant queries are consolidated in the Project Director Command Centre.
+                    </p>
+                    <div class="actions">
+                        <a class="action" href="/executive">
+                            <strong>Open Command Centre</strong>
+                            <span>Project health, vendor ranking, risks, budget, resources, ETA and executive AI.</span>
+                        </a>
+                        <a class="action" href="/progress_review">
+                            <strong>Progress Review</strong>
+                            <span>Pile casting, module installation and DPR activity review table.</span>
+                        </a>
+                        <a class="action" href="/pending">
+                            <strong>Pending Reviews</strong>
+                            <span>Review drawings waiting for admin decision.</span>
+                        </a>
+                        <a class="action" href="/learning">
+                            <strong>AI Learning Centre</strong>
+                            <span>Upload standards, manuals, DPRs and technical knowledge.</span>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h2>Review Status</h2>
+                    <div class="status-list">
+                        <div class="status"><span>Approved Drawings</span><span class="pill">{{ approved_count }}</span></div>
+                        <div class="status"><span>Pending Reviews</span><span class="pill">{{ pending_count }}</span></div>
+                        <div class="status"><span>AI Review Engine</span><span class="pill">Active</span></div>
+                        <div class="status"><span>DPR Intelligence</span><span class="pill">Live</span></div>
+                        <div class="status"><span>Knowledge Learning</span><span class="pill">Enabled</span></div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        function toggleSidebar() {
+            document.body.classList.toggle("sidebar-collapsed");
+            localStorage.setItem("ntpc_sidebar_collapsed", document.body.classList.contains("sidebar-collapsed") ? "1" : "0");
+        }
+
+        if (localStorage.getItem("ntpc_sidebar_collapsed") === "1") {
+            document.body.classList.add("sidebar-collapsed");
+        }
+    </script>
 </body>
 </html>

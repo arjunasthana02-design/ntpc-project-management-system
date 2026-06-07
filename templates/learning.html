@@ -30,8 +30,6 @@
         .snippet { color: #475467; line-height: 1.5; max-width: 900px; }
         .search-form { grid-template-columns: 1fr auto; margin-bottom: 18px; }
         .muted { color: #64748b; font-weight: 600; padding: 20px 0; }
-        .chips { display: flex; flex-wrap: wrap; gap: 10px; }
-        .chip { background: #e0f2fe; color: #075985; border-radius: 9px; padding: 10px 13px; font-weight: 800; }
         @media (max-width: 900px) {
             body { padding: 18px; }
             .topbar { flex-direction: column; align-items: flex-start; padding: 22px; }
@@ -101,35 +99,6 @@
             </div>
             <button type="submit">Learn Document</button>
         </form>
-    </div>
-
-    <div class="box">
-        <h1>Learning Analytics</h1>
-        <div class="grid">
-            <div class="card">
-                <h3>Knowledge Quality</h3>
-                <p>{{ learning_analytics.quality }}%</p>
-            </div>
-            <div class="card">
-                <h3>Average Document Size</h3>
-                <p>{{ learning_analytics.avg_size }}</p>
-            </div>
-            <div class="card">
-                <h3>Similar Document Signals</h3>
-                <p>{{ learning_analytics.similarity_pairs }}</p>
-            </div>
-            <div class="card">
-                <h3>Knowledge Categories</h3>
-                <p>{{ learning_analytics.categories|length }}</p>
-            </div>
-        </div>
-        <div class="chips">
-            {% for category, count in learning_analytics.categories.items() %}
-            <span class="chip">{{ category }}: {{ count }}</span>
-            {% else %}
-            <span class="chip">No categorized knowledge yet</span>
-            {% endfor %}
-        </div>
     </div>
 
     <div class="box">

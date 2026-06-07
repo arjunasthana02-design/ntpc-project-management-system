@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>NTPC Project Director Command Centre</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; }
+        body { background: #eef2f7; color: #1f2937; padding: 24px; }
+        .topbar { background: #0b566f; color: white; border-radius: 12px; padding: 22px 26px; display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+        .topbar h1 { font-size: 24px; margin-bottom: 4px; }
+        .topbar p { color: #d8edf5; font-size: 14px; }
+        .home { color: #0b566f; background: white; text-decoration: none; padding: 11px 18px; border-radius: 8px; font-weight: 800; white-space: nowrap; }
+        .nav { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; }
+        .nav a { background: white; color: #0b566f; text-decoration: none; border: 1px solid #c9d8e3; padding: 10px 13px; border-radius: 8px; font-weight: 800; font-size: 13px; }
+        .grid { display: grid; grid-template-columns: repeat(5, minmax(150px, 1fr)); gap: 14px; margin-bottom: 18px; }
+        .kpi, .panel { background: white; border-radius: 8px; box-shadow: 0 2px 12px rgba(15, 23, 42, .08); }
+        .kpi { padding: 18px; min-height: 110px; }
+        .kpi h3 { color: #64748b; font-size: 12px; text-transform: uppercase; margin-bottom: 10px; }
+        .kpi strong { color: #0b566f; font-size: 28px; }
+        .panel { padding: 22px; margin-bottom: 18px; }
+        .panel h2 { color: #0b566f; font-size: 21px; margin-bottom: 14px; }
+        .summary { line-height: 1.6; font-weight: 700; color: #334155; }
+        .alerts { display: grid; gap: 10px; }
+        .alert { background: #fff7ed; border-left: 5px solid #f97316; padding: 12px 14px; border-radius: 6px; font-weight: 700; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { background: #0b566f; color: white; text-align: left; padding: 12px; font-size: 13px; }
+        td { border-bottom: 1px solid #e5e7eb; padding: 12px; vertical-align: top; font-size: 14px; }
+        tr:hover td { background: #f8fafc; }
+        .two { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+        .badge { display: inline-block; min-width: 78px; text-align: center; border-radius: 999px; padding: 6px 10px; font-weight: 800; font-size: 12px; }
+        .High, .Critical { background: #fee2e2; color: #b91c1c; }
+        .Medium, .Watch { background: #fef3c7; color: #92400e; }
+        .Low, .Healthy { background: #dcfce7; color: #166534; }
+        .meter { height: 9px; background: #e2e8f0; border-radius: 99px; overflow: hidden; min-width: 120px; }
+        .meter span { display: block; height: 100%; background: #0b566f; }
+        form.assistant { display: grid; grid-template-columns: 1fr auto; gap: 10px; margin-bottom: 14px; }
+        input { width: 100%; border: 1px solid #cbd5e1; border-radius: 8px; padding: 13px; font-size: 15px; }
+        button { background: #0b566f; color: white; border: 0; border-radius: 8px; padding: 0 18px; font-weight: 800; cursor: pointer; }
+        .answer { background: #f0f9ff; border: 1px solid #bae6fd; padding: 16px; border-radius: 8px; line-height: 1.6; font-weight: 700; }
+        .category-list { display: flex; flex-wrap: wrap; gap: 10px; }
+        .category-list span { background: #e0f2fe; color: #075985; border-radius: 8px; padding: 9px 12px; font-weight: 800; }
+        @media (max-width: 1100px) { .grid { grid-template-columns: repeat(2, 1fr); } .two { grid-template-columns: 1fr; } }
+        @media (max-width: 680px) { body { padding: 14px; } .topbar { flex-direction: column; align-items: flex-start; } .grid { grid-template-columns: 1fr; } form.assistant { grid-template-columns: 1fr; } button { min-height: 44px; } }
+    </style>
+</head>
+<body>
+    <div class="topbar">
+        <div>
+            <h1>Project Director Command Centre</h1>
+            <p>{{ session["role"].replace("_"," ").title() }} {{ session["username"] }} | Executive project intelligence</p>
+        </div>
+        <a class="home" href="/home">Main Dashboard</a>
+    </div>
+
+    <div class="nav">
+        <a href="/executive">Command Centre</a>
+        <a href="/vendor_intelligence">Vendor Intelligence</a>
+        <a href="/resource_management">Resources</a>
+        <a href="/budget_intelligence">Budget</a>
+        <a href="/prediction_engine">ETA Prediction</a>
+        <a href="/executive_ai">Executive AI</a>
+        <a href="/learning_intelligence">Learning Intelligence</a>
+        <a href="/drawing_intelligence">Drawing Intelligence</a>
+        <a href="/risk_management">Risk Management</a>
+    </div>
+
+    <div class="grid" id="command">
+        <div class="kpi"><h3>Overall Progress</h3><strong>{{ data.kpis.overall_progress }}%</strong></div>
+        <div class="kpi"><h3>Total Vendors</h3><strong>{{ data.kpis.total_vendors }}</strong></div>
+        <div class="kpi"><h3>Active Vendors</h3><strong>{{ data.kpis.active_vendors }}</strong></div>
+        <div class="kpi"><h3>Delayed Activities</h3><strong>{{ data.kpis.delayed_activities }}</strong></div>
+        <div class="kpi"><h3>Critical Risks</h3><strong>{{ data.kpis.critical_risks }}</strong></div>
+        <div class="kpi"><h3>DPR Submissions</h3><strong>{{ data.kpis.dpr_submissions }}</strong></div>
+        <div class="kpi"><h3>Completion</h3><strong>{{ data.kpis.overall_completion }}%</strong></div>
+        <div class="kpi"><h3>Health Score</h3><strong>{{ data.kpis.health_score }}%</strong></div>
+        <div class="kpi"><h3>Resource Status</h3><strong>{{ data.kpis.resource_status }}%</strong></div>
+        <div class="kpi"><h3>Budget Utilization</h3><strong>{{ data.kpis.budget_status }}%</strong></div>
+    </div>
+
+    <div class="two">
+        <div class="panel">
+            <h2>Executive Summary</h2>
+            <p class="summary">{{ data.summary }}</p>
+        </div>
+        <div class="panel">
+            <h2>Executive Alerts</h2>
+            <div class="alerts">
+                {% for alert in data.alerts %}
+                <div class="alert">{{ alert }}</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="panel" id="vendors">
+        <h2>Vendor Rating and Intelligence System</h2>
+        <table>
+            <tr><th>Rank</th><th>Vendor</th><th>Productivity</th><th>Quality</th><th>Compliance</th><th>Safety</th><th>DPR</th><th>Approval</th><th>Rejection</th><th>Overall</th></tr>
+            {% for vendor in data.vendors %}
+            <tr>
+                <td>{{ vendor.rank }}</td><td>{{ vendor.vendor }}</td><td>{{ vendor.productivity }}%</td><td>{{ vendor.quality }}%</td><td>{{ vendor.compliance }}%</td><td>{{ vendor.safety }}%</td><td>{{ vendor.dpr_performance }}%</td><td>{{ vendor.approval_rate }}%</td><td>{{ vendor.rejection_rate }}%</td><td><strong>{{ vendor.overall }}%</strong></td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <div class="panel" id="resources">
+        <h2>Resource Management Engine</h2>
+        <table>
+            <tr><th>Type</th><th>Resource</th><th>Allocated</th><th>Utilized</th><th>Available</th><th>Shortage</th><th>Utilization</th><th>Performance</th></tr>
+            {% for item in data.resources["items"] %}
+            <tr>
+                <td>{{ item.type }}</td><td>{{ item.name }}</td><td>{{ item.allocated }}</td><td>{{ item.utilized }}</td><td>{{ item.available }}</td><td>{{ item.shortage }}</td><td>{{ item.utilization }}%</td><td>{{ item.performance }}%</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <div class="panel" id="budget">
+        <h2>Cost and Budget Intelligence</h2>
+        <div class="grid">
+            <div class="kpi"><h3>Allocated</h3><strong>Rs {{ "{:,.0f}".format(data.budget.allocated) }}</strong></div>
+            <div class="kpi"><h3>Utilized</h3><strong>Rs {{ "{:,.0f}".format(data.budget.utilized) }}</strong></div>
+            <div class="kpi"><h3>Remaining</h3><strong>Rs {{ "{:,.0f}".format(data.budget.remaining) }}</strong></div>
+            <div class="kpi"><h3>Forecast</h3><strong>Rs {{ "{:,.0f}".format(data.budget.forecast) }}</strong></div>
+            <div class="kpi"><h3>Variance</h3><strong>Rs {{ "{:,.0f}".format(data.budget.variance) }}</strong></div>
+        </div>
+        <table>
+            <tr><th>Department</th><th>Allocated</th><th>Utilized</th><th>Forecast</th><th>Variance</th><th>Health</th></tr>
+            {% for dept in data.budget.departments %}
+            <tr><td>{{ dept.department }}</td><td>Rs {{ "{:,.0f}".format(dept.allocated) }}</td><td>Rs {{ "{:,.0f}".format(dept.utilized) }}</td><td>Rs {{ "{:,.0f}".format(dept.forecast) }}</td><td>Rs {{ "{:,.0f}".format(dept.variance) }}</td><td><span class="badge {{ dept.health }}">{{ dept.health }}</span></td></tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <div class="panel" id="prediction">
+        <h2>ETA and Completion Prediction Engine</h2>
+        <div class="grid">
+            <div class="kpi"><h3>Estimated Completion</h3><strong style="font-size:20px;">{{ data.forecast.estimated_completion }}</strong></div>
+            <div class="kpi"><h3>Remaining Duration</h3><strong style="font-size:20px;">{{ data.forecast.remaining_duration }}</strong></div>
+            <div class="kpi"><h3>Delay Probability</h3><strong>{{ data.forecast.delay_probability }}%</strong></div>
+            <div class="kpi"><h3>Project Completion</h3><strong>{{ data.forecast.overall_completion }}%</strong></div>
+        </div>
+        <table>
+            <tr><th>Activity</th><th>Current Completion</th><th>Forecast Completion Date</th></tr>
+            {% for item in data.forecast.activity_forecasts %}
+            <tr><td>{{ item.activity }}</td><td>{{ item.completion }}%</td><td>{{ item.forecast }}</td></tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <div class="panel" id="assistant">
+        <h2>Executive AI Assistant</h2>
+        <form class="assistant" action="/executive_ai" method="POST">
+            <input name="question" value="{{ assistant_question or '' }}" placeholder="Ask about project status, delays, vendors, resources, budget, risks or progress">
+            <button type="submit">Ask</button>
+        </form>
+        {% if assistant_answer %}
+        <div class="answer">{{ assistant_answer }}</div>
+        {% endif %}
+    </div>
+
+    <div class="panel" id="learning">
+        <h2>AI Learning Centre Intelligence</h2>
+        <div class="grid">
+            <div class="kpi"><h3>Knowledge Quality</h3><strong>{{ data.learning.quality }}%</strong></div>
+            <div class="kpi"><h3>Average Text Size</h3><strong>{{ data.learning.avg_size }}</strong></div>
+            <div class="kpi"><h3>Similar Documents</h3><strong>{{ data.learning.similarity_pairs }}</strong></div>
+        </div>
+        <div class="category-list">
+            {% for category, count in data.learning.categories.items() %}
+            <span>{{ category }}: {{ count }}</span>
+            {% else %}
+            <span>No learned documents yet</span>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="panel" id="documents">
+        <h2>Document and Drawing Intelligence</h2>
+        <table>
+            <tr><th>Drawing</th><th>Vendor</th><th>Versions</th><th>Status</th><th>Compliance</th><th>Relationship</th></tr>
+            {% for doc in data.documents %}
+            <tr><td>{{ doc.document }}</td><td>{{ doc.vendor }}</td><td>{{ doc.versions }}</td><td>{{ doc.latest_status }}</td><td>{{ doc.compliance }}</td><td>{{ doc.relationship }}</td></tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <div class="panel" id="risks">
+        <h2>Predictive Risk Management Engine</h2>
+        <table>
+            <tr><th>Risk</th><th>Score</th><th>Severity</th><th>Heat</th><th>Recommendation</th></tr>
+            {% for risk in data.risks %}
+            <tr>
+                <td>{{ risk.name }}</td><td>{{ risk.score }}%</td><td><span class="badge {{ risk.severity }}">{{ risk.severity }}</span></td><td><div class="meter"><span style="width: {{ risk.score }}%;"></span></div></td><td>{{ risk.recommendation }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+</body>
+</html>
